@@ -2,49 +2,49 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useData } from '../context/DataContext'
 import { today, fmtTimer, fmtHours, fmtDate, isThisWeek, isThisMonth } from '../lib/dates'
 
-function Section({ title, subtitle, icon, children }) {
+function Section({ title, subtitle, icon, iconBg, iconColor, children }) {
   const [open, setOpen] = useState(false)
   return (
     <div style={{
       background: 'var(--bg2)', border: '1px solid var(--border)',
-      borderRadius: 'var(--r2)', marginBottom: 12,
-      boxShadow: 'var(--shadow)', overflow: 'hidden'
+      borderRadius: 'var(--r2)', boxShadow: 'var(--shadow)', overflow: 'hidden'
     }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', padding: '14px 18px',
-          background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left', gap: 12,
-        }}
-      >
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', padding: '12px 16px',
+        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', gap: 12,
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'var(--brand-bg)', color: 'var(--brand)',
+            width: 30, height: 30, borderRadius: 8,
+            background: iconBg, color: iconColor,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 15, flexShrink: 0,
+            fontSize: 14, flexShrink: 0,
           }}>{icon}</span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px' }}>{title}</div>
-            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>{subtitle}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px' }}>{title}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--text3)', marginTop: 1 }}>{subtitle}</div>
           </div>
         </div>
         <span style={{
-          fontSize: 12, color: 'var(--text3)',
+          fontSize: 11, color: 'var(--text3)',
           transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
           transition: 'transform 0.2s', flexShrink: 0,
         }}>▾</span>
       </button>
 
       {open && (
-        <div style={{ padding: '4px 18px 18px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid var(--border)' }}>
           {children}
         </div>
       )}
     </div>
   )
+}
+
+// Convert h + m inputs to decimal hours
+function toHrs(h, m) {
+  return (parseInt(h) || 0) + (parseInt(m) || 0) / 60
 }
 
 export default function Timebox() {
@@ -57,10 +57,11 @@ export default function Timebox() {
   const [tDesc,   setTDesc]   = useState('')
   const ivRef = useRef(null)
 
-  // ── Manual ───────────────────────────────────────────────
+  // ── Manual entry ─────────────────────────────────────────
   const [mProjId, setMProjId] = useState('')
   const [mDate,   setMDate]   = useState(today())
-  const [mDur,    setMDur]    = useState('')
+  const [mHrs,    setMHrs]    = useState('')
+  const [mMins,   setMMins]   = useState('')
   const [mNote,   setMNote]   = useState('')
   const [mBusy,   setMBusy]   = useState(false)
   const [mMsg,    setMMsg]    = useState('')
@@ -95,17 +96,18 @@ export default function Timebox() {
   }
 
   async function addManual() {
-    if (!mProjId || !mDur || +mDur <= 0) return
+    const dur = toHrs(mHrs, mMins)
+    if (!mProjId || dur <= 0) return
     setMBusy(true)
     try {
       await addLog({
         project_id:   +mProjId,
         description:  mNote || 'Manual entry',
-        duration_hrs: +mDur,
+        duration_hrs: +dur.toFixed(2),
         logged_date:  mDate || today(),
         source:       'manual',
       })
-      setMDur(''); setMNote('')
+      setMHrs(''); setMMins(''); setMNote('')
       setMMsg('Added ✓')
       setTimeout(() => setMMsg(''), 1800)
     } catch (e) {
@@ -138,18 +140,20 @@ export default function Timebox() {
 
   return (
     <>
-      {/* ── Timer section ── */}
+      {/* ── Live Timer ── */}
       <Section
         icon="⏱"
-        title="Live Timer"
+        title="Live timer"
         subtitle="Start tracking time in real-time"
+        iconBg="rgba(26,158,110,0.1)"
+        iconColor="var(--green)"
       >
-        <div style={{ display: 'flex', gap: 32, alignItems: 'center', flexWrap: 'wrap', paddingTop: 16 }}>
+        <div style={{ display: 'flex', gap: 32, alignItems: 'center', flexWrap: 'wrap', paddingTop: 14 }}>
           <div>
             <div className={'timer-clock' + (running ? ' running' : '')} style={{ fontSize: 48 }}>
               {fmtTimer(secs)}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               {!running
                 ? <button className="btn btn-primary" onClick={start}>▶ Start</button>
                 : <button className="btn btn-stop"    onClick={stop}>■ Stop</button>
@@ -183,14 +187,16 @@ export default function Timebox() {
         </div>
       </Section>
 
-      {/* ── Manual entry section ── */}
+      {/* ── Manual Entry ── */}
       <Section
         icon="✎"
-        title="Manual Entry"
+        title="Manual entry"
         subtitle="Log time you've already spent"
+        iconBg="var(--brand-bg)"
+        iconColor="var(--brand)"
       >
-        <div style={{ paddingTop: 16 }}>
-          <div className="form-grid form-grid-4" style={{ marginBottom: 12 }}>
+        <div style={{ paddingTop: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div className="field">
               <div className="field-label">Project</div>
               <div className="sel-wrap">
@@ -205,26 +211,39 @@ export default function Timebox() {
               <input type="date" value={mDate} onChange={e => setMDate(e.target.value)} />
             </div>
             <div className="field">
-              <div className="field-label">Duration (hrs)</div>
-              <input type="number" value={mDur} onChange={e => setMDur(e.target.value)}
-                placeholder="1.5" step="0.25" min="0.1" max="24" />
+              <div className="field-label">Duration</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="number" value={mHrs} onChange={e => setMHrs(e.target.value)}
+                  placeholder="0" min="0" max="23"
+                  style={{ width: 52, textAlign: 'center', padding: '8px 6px' }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text3)', flexShrink: 0 }}>h</span>
+                <input
+                  type="number" value={mMins} onChange={e => setMMins(e.target.value)}
+                  placeholder="0" min="0" max="59"
+                  style={{ width: 52, textAlign: 'center', padding: '8px 6px' }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text3)', flexShrink: 0 }}>m</span>
+              </div>
             </div>
-            <button className="btn btn-primary" onClick={addManual} disabled={mBusy}
-              style={{ height: 38, alignSelf: 'end' }}>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'end' }}>
+            <div className="field" style={{ flex: 1 }}>
+              <div className="field-label">Note (optional)</div>
+              <input value={mNote} onChange={e => setMNote(e.target.value)} placeholder="Brief description…" />
+            </div>
+            <button className="btn btn-primary" onClick={addManual} disabled={mBusy} style={{ height: 38, flexShrink: 0 }}>
               {mMsg || (mBusy ? <span className="spin" /> : '+ Add')}
             </button>
-          </div>
-          <div className="field">
-            <div className="field-label">Note (optional)</div>
-            <input value={mNote} onChange={e => setMNote(e.target.value)} placeholder="Brief description…" />
           </div>
         </div>
       </Section>
 
-      {/* ── Log list ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 12px', flexWrap: 'wrap', gap: 10 }}>
+      {/* ── Time entries ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '8px 0 10px', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Time entries</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <div className="chips">
             <button className={'chip' + (projFilter === 'all' ? ' on' : '')} onClick={() => setProjFilter('all')}>All</button>
             {projects.map(p => (
