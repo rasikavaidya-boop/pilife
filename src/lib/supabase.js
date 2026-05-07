@@ -78,3 +78,14 @@ export async function deleteLog(id) {
   const { error } = await supabase.from('time_logs').delete().eq('id', id)
   if (error) throw error
 }
+
+export async function updateLog(id, fields) {
+  const { data, error } = await supabase
+    .from('time_logs')
+    .update(fields)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}

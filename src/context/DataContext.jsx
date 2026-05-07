@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useReducer, useCallback } from 'react'
 import { useAuth } from './AuthContext'
-import { getProjects, insertProject, updateProject, deleteProject, getLogs, insertLog, deleteLog } from '../lib/supabase'
+import { getProjects, insertProject, updateProject, deleteProject, getLogs, insertLog, updateLog, deleteLog } from '../lib/supabase'
 import { weekStart, weekEnd } from '../lib/dates'
 
 const Ctx = createContext(null)
@@ -17,6 +17,8 @@ function reducer(state, action) {
       return { ...state, projects: state.projects.filter(p => p.id !== action.id), logs: state.logs.filter(l => l.project_id !== action.id) }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
+    case 'UPDATE_LOG':
+      return { ...state, logs: state.logs.map(l => l.id === action.payload.id ? action.payload : l) }
     case 'DELETE_LOG':
       return { ...state, logs: state.logs.filter(l => l.id !== action.id) }
     default: return state
@@ -58,6 +60,12 @@ export function DataProvider({ children }) {
     return l
   }
 
+  async function editLog(id, fields) {
+    const l = await updateLog(id, fields)
+    dispatch({ type: 'UPDATE_LOG', payload: l })
+    return l
+  }
+
   async function removeLog(id) {
     await deleteLog(id)
     dispatch({ type: 'DELETE_LOG', id })
@@ -69,7 +77,7 @@ export function DataProvider({ children }) {
   }
 
   return (
-    <Ctx.Provider value={{ ...state, addProject, editProject, removeProject, addLog, removeLog, weekLogs }}>
+    <Ctx.Provider value={{ ...state, addProject, editProject, removeProject, addLog, editLog, removeLog, weekLogs }}>
       {children}
     </Ctx.Provider>
   )
