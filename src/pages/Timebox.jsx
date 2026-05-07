@@ -2,17 +2,62 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useData } from '../context/DataContext'
 import { today, fmtTimer, fmtHours, fmtDate, isThisWeek, isThisMonth } from '../lib/dates'
 
+function Section({ title, subtitle, icon, children }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{
+      background: 'var(--bg2)', border: '1px solid var(--border)',
+      borderRadius: 'var(--r2)', marginBottom: 12,
+      boxShadow: 'var(--shadow)', overflow: 'hidden'
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '14px 18px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left', gap: 12,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: 'var(--brand-bg)', color: 'var(--brand)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 15, flexShrink: 0,
+          }}>{icon}</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px' }}>{title}</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>{subtitle}</div>
+          </div>
+        </div>
+        <span style={{
+          fontSize: 12, color: 'var(--text3)',
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s', flexShrink: 0,
+        }}>▾</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '4px 18px 18px', borderTop: '1px solid var(--border)' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Timebox() {
   const { projects, logs, addLog, removeLog } = useData()
 
-  // ── Timer state ──────────────────────────────────────────
+  // ── Timer ────────────────────────────────────────────────
   const [secs,    setSecs]    = useState(0)
   const [running, setRunning] = useState(false)
   const [tProjId, setTProjId] = useState('')
   const [tDesc,   setTDesc]   = useState('')
   const ivRef = useRef(null)
 
-  // ── Manual entry state ───────────────────────────────────
+  // ── Manual ───────────────────────────────────────────────
   const [mProjId, setMProjId] = useState('')
   const [mDate,   setMDate]   = useState(today())
   const [mDur,    setMDur]    = useState('')
@@ -20,7 +65,7 @@ export default function Timebox() {
   const [mBusy,   setMBusy]   = useState(false)
   const [mMsg,    setMMsg]    = useState('')
 
-  // ── Log filter state ─────────────────────────────────────
+  // ── Filters ──────────────────────────────────────────────
   const [projFilter, setProjFilter] = useState('all')
   const [period,     setPeriod]     = useState('week')
 
@@ -46,8 +91,7 @@ export default function Timebox() {
   }
 
   function reset() {
-    stop()
-    setSecs(0); setTDesc('')
+    stop(); setSecs(0); setTDesc('')
   }
 
   async function addManual() {
@@ -76,7 +120,6 @@ export default function Timebox() {
     await removeLog(id)
   }
 
-  // ── Filtered + grouped logs ──────────────────────────────
   const filtered = useMemo(() => logs.filter(l => {
     const okP = projFilter === 'all' || l.project_id === +projFilter
     const okT = period === 'all'
@@ -95,98 +138,114 @@ export default function Timebox() {
 
   return (
     <>
-      {/* ── Timer ── */}
-      <div className="timer-wrap">
-        <div>
-          <div className={'timer-clock' + (running ? ' running' : '')}>{fmtTimer(secs)}</div>
-          <div className="timer-controls">
-            {!running
-              ? <button className="btn btn-primary" onClick={start}>▶ Start</button>
-              : <button className="btn btn-stop"    onClick={stop}>■ Stop</button>
-            }
-            {secs > 0 && !running && (
-              <button className="btn" onClick={reset}>↺ Reset</button>
+      {/* ── Timer section ── */}
+      <Section
+        icon="⏱"
+        title="Live Timer"
+        subtitle="Start tracking time in real-time"
+      >
+        <div style={{ display: 'flex', gap: 32, alignItems: 'center', flexWrap: 'wrap', paddingTop: 16 }}>
+          <div>
+            <div className={'timer-clock' + (running ? ' running' : '')} style={{ fontSize: 48 }}>
+              {fmtTimer(secs)}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              {!running
+                ? <button className="btn btn-primary" onClick={start}>▶ Start</button>
+                : <button className="btn btn-stop"    onClick={stop}>■ Stop</button>
+              }
+              {secs > 0 && !running && (
+                <button className="btn" onClick={reset}>↺ Reset</button>
+              )}
+            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="field">
+              <div className="field-label">Project</div>
+              <div className="sel-wrap">
+                <select value={tProjId} onChange={e => setTProjId(e.target.value)} disabled={running}>
+                  <option value="">Select a project…</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <div className="field-label">What are you working on?</div>
+              <input value={tDesc} onChange={e => setTDesc(e.target.value)}
+                placeholder="e.g. Sprint planning, bug fix…" disabled={running} />
+            </div>
+            {selProj && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: selProj.color }}>
+                <span className="nav-dot" style={{ background: selProj.color }} /> {selProj.name}
+              </div>
             )}
           </div>
         </div>
-        <div className="timer-fields">
-          <div className="field">
-            <div className="field-label">Project</div>
-            <div className="sel-wrap">
-              <select value={tProjId} onChange={e => setTProjId(e.target.value)} disabled={running}>
-                <option value="">Select a project…</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="field">
-            <div className="field-label">What are you working on?</div>
-            <input value={tDesc} onChange={e => setTDesc(e.target.value)}
-              placeholder="e.g. Sprint planning, bug fix…" disabled={running} />
-          </div>
-          {selProj && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: selProj.color }}>
-              <span className="nav-dot" style={{ background: selProj.color }} /> {selProj.name}
-            </div>
-          )}
-        </div>
-      </div>
+      </Section>
 
-      {/* ── Manual entry ── */}
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-title" style={{ marginBottom: 16 }}>Manual entry</div>
-        <div className="form-grid form-grid-4" style={{ marginBottom: 12 }}>
-          <div className="field">
-            <div className="field-label">Project</div>
-            <div className="sel-wrap">
-              <select value={mProjId} onChange={e => setMProjId(e.target.value)}>
-                <option value="">Select…</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+      {/* ── Manual entry section ── */}
+      <Section
+        icon="✎"
+        title="Manual Entry"
+        subtitle="Log time you've already spent"
+      >
+        <div style={{ paddingTop: 16 }}>
+          <div className="form-grid form-grid-4" style={{ marginBottom: 12 }}>
+            <div className="field">
+              <div className="field-label">Project</div>
+              <div className="sel-wrap">
+                <select value={mProjId} onChange={e => setMProjId(e.target.value)}>
+                  <option value="">Select…</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
             </div>
+            <div className="field">
+              <div className="field-label">Date</div>
+              <input type="date" value={mDate} onChange={e => setMDate(e.target.value)} />
+            </div>
+            <div className="field">
+              <div className="field-label">Duration (hrs)</div>
+              <input type="number" value={mDur} onChange={e => setMDur(e.target.value)}
+                placeholder="1.5" step="0.25" min="0.1" max="24" />
+            </div>
+            <button className="btn btn-primary" onClick={addManual} disabled={mBusy}
+              style={{ height: 38, alignSelf: 'end' }}>
+              {mMsg || (mBusy ? <span className="spin" /> : '+ Add')}
+            </button>
           </div>
           <div className="field">
-            <div className="field-label">Date</div>
-            <input type="date" value={mDate} onChange={e => setMDate(e.target.value)} />
+            <div className="field-label">Note (optional)</div>
+            <input value={mNote} onChange={e => setMNote(e.target.value)} placeholder="Brief description…" />
           </div>
-          <div className="field">
-            <div className="field-label">Duration (hrs)</div>
-            <input type="number" value={mDur} onChange={e => setMDur(e.target.value)}
-              placeholder="1.5" step="0.25" min="0.1" max="24" />
-          </div>
-          <button className="btn btn-primary" onClick={addManual} disabled={mBusy}
-            style={{ height: 38, alignSelf: 'end' }}>
-            {mMsg || (mBusy ? <span className="spin" /> : '+ Add')}
-          </button>
         </div>
-        <div className="field">
-          <div className="field-label">Note (optional)</div>
-          <input value={mNote} onChange={e => setMNote(e.target.value)} placeholder="Brief description…" />
-        </div>
-      </div>
+      </Section>
 
       {/* ── Log list ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
-        <div className="chips">
-          <button className={'chip' + (projFilter === 'all' ? ' on' : '')} onClick={() => setProjFilter('all')}>All</button>
-          {projects.map(p => (
-            <button key={p.id} className={'chip' + (projFilter === String(p.id) ? ' on' : '')}
-              onClick={() => setProjFilter(String(p.id))}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.color, display: 'inline-block', marginRight: 5, verticalAlign: 'middle' }} />
-              {p.name}
-            </button>
-          ))}
-        </div>
-        <div className="chips">
-          {[['week','This week'],['month','This month'],['all','All time']].map(([v, l]) => (
-            <button key={v} className={'chip' + (period === v ? ' on' : '')} onClick={() => setPeriod(v)}>{l}</button>
-          ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 12px', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Time entries</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="chips">
+            <button className={'chip' + (projFilter === 'all' ? ' on' : '')} onClick={() => setProjFilter('all')}>All</button>
+            {projects.map(p => (
+              <button key={p.id} className={'chip' + (projFilter === String(p.id) ? ' on' : '')}
+                onClick={() => setProjFilter(String(p.id))}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.color, display: 'inline-block', marginRight: 5, verticalAlign: 'middle' }} />
+                {p.name}
+              </button>
+            ))}
+          </div>
+          <div className="chips">
+            {[['week','This week'],['month','This month'],['all','All time']].map(([v, l]) => (
+              <button key={v} className={'chip' + (period === v ? ' on' : '')} onClick={() => setPeriod(v)}>{l}</button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="card">
         {grouped.length === 0
-          ? <div className="empty">No entries yet — start the timer or add one manually.</div>
+          ? <div className="empty">No entries yet — use the timer or add one manually above.</div>
           : grouped.map(([date, rows]) => (
               <div key={date}>
                 <div className="log-date">{fmtDate(date)}</div>
