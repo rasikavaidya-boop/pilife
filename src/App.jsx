@@ -4,8 +4,7 @@ import { DataProvider } from './context/DataContext'
 import Layout from './components/Layout'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
-import Timer from './pages/Timer'
-import Logs from './pages/Logs'
+import Timebox from './pages/Timebox'
 import Goals from './pages/Goals'
 
 function Private({ children }) {
@@ -27,10 +26,9 @@ export default function App() {
     <Routes>
       <Route path="/auth" element={<PublicOnly><Auth /></PublicOnly>} />
       <Route path="/" element={<Private><Layout /></Private>}>
-        <Route index        element={<Dashboard />} />
-        <Route path="timer" element={<Timer />} />
-        <Route path="logs"  element={<Logs />} />
-        <Route path="goals" element={<Goals />} />
+        <Route index           element={<Dashboard />} />
+        <Route path="timebox"  element={<Timebox />} />
+        <Route path="goals"    element={<Goals />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

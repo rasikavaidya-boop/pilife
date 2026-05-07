@@ -4,10 +4,10 @@ import { useData } from '../context/DataContext'
 import { signOut } from '../lib/supabase'
 import ProjectModal from './ProjectModal'
 
-const TITLES = { '/': 'Dashboard', '/timer': 'Timer', '/logs': 'Time Logs', '/goals': 'Goals' }
+const TITLES = { '/': 'Dashboard', '/timebox': 'Timebox', '/goals': 'Goals' }
 
 export default function Layout() {
-  const { projects, addProject, timerRunning, timerProject } = useData()
+  const { projects, addProject } = useData()
   const [showAdd, setShowAdd] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -19,7 +19,6 @@ export default function Layout() {
 
   return (
     <div className="app">
-      {/* ── Sidebar ── */}
       <aside className="sidebar">
         <NavLink to="/" className="logo">
           <div className="logo-mark">π</div>
@@ -28,22 +27,19 @@ export default function Layout() {
 
         <nav className="nav">
           <div className="nav-label">Menu</div>
-          <NavLink to="/"      end className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
+          <NavLink to="/"         end className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
             <span className="nav-icon">⊞</span> Dashboard
           </NavLink>
-          <NavLink to="/timer"     className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">⏱</span> Timer
+          <NavLink to="/timebox"      className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
+            <span className="nav-icon">⏱</span> Timebox
           </NavLink>
-          <NavLink to="/logs"      className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">≡</span> Time Logs
-          </NavLink>
-          <NavLink to="/goals"     className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
+          <NavLink to="/goals"        className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
             <span className="nav-icon">◎</span> Goals
           </NavLink>
 
           <div className="nav-label">Projects</div>
           {projects.map(p => (
-            <button key={p.id} className="nav-link" onClick={() => navigate('/logs?p=' + p.id)}>
+            <button key={p.id} className="nav-link" onClick={() => navigate('/timebox?p=' + p.id)}>
               <span className="nav-dot" style={{ background: p.color }} />
               {p.name}
             </button>
@@ -59,17 +55,10 @@ export default function Layout() {
         </nav>
       </aside>
 
-      {/* ── Main ── */}
       <div className="main">
         <header className="topbar">
           <div className="topbar-left">
             <span className="page-title">{TITLES[pathname] || 'PiLife'}</span>
-            {timerRunning && (
-              <div className="live">
-                <span className="live-dot" />
-                Recording{timerProject ? ' · ' + timerProject : ''}
-              </div>
-            )}
           </div>
         </header>
         <main className="content">
