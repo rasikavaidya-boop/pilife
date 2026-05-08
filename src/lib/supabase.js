@@ -126,3 +126,40 @@ export async function deleteCategory(id) {
   const { error } = await supabase.from('categories').delete().eq('id', id)
   if (error) throw error
 }
+
+// ── Goals ─────────────────────────────────────────────────
+export async function getGoals(userId) {
+  const { data, error } = await supabase
+    .from('goals')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function insertGoal(userId, { project_id, period_type, target_hrs, start_date, end_date }) {
+  const { data, error } = await supabase
+    .from('goals')
+    .insert({ user_id: userId, project_id, period_type, target_hrs, start_date: start_date || null, end_date: end_date || null })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateGoal(id, fields) {
+  const { data, error } = await supabase
+    .from('goals')
+    .update(fields)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteGoal(id) {
+  const { error } = await supabase.from('goals').delete().eq('id', id)
+  if (error) throw error
+}
