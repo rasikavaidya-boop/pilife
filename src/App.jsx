@@ -6,6 +6,7 @@ import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import Timebox from './pages/Timebox'
 import Goals from './pages/Goals'
+import Categories from './pages/Categories'
 import ProjectDetail from './pages/ProjectDetail'
 
 function Private({ children }) {
@@ -27,10 +28,11 @@ export default function App() {
     <Routes>
       <Route path="/auth" element={<PublicOnly><Auth /></PublicOnly>} />
       <Route path="/" element={<Private><Layout /></Private>}>
-        <Route index                    element={<Dashboard />} />
-        <Route path="timebox"           element={<Timebox />} />
-        <Route path="goals"             element={<Goals />} />
-        <Route path="projects/:id"      element={<ProjectDetail />} />
+        <Route index               element={<Dashboard />} />
+        <Route path="timebox"      element={<Timebox />} />
+        <Route path="goals"        element={<Goals />} />
+        <Route path="categories"   element={<Categories />} />
+        <Route path="projects/:id" element={<ProjectDetail />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
