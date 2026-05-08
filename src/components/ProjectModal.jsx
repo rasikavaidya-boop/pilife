@@ -5,12 +5,11 @@ const COLORS = ['#7c5cbf','#1a9e6e','#c44a30','#3070c0','#b07d20','#c47a6e','#4a
 
 export default function ProjectModal({ onClose, onSave, initial }) {
   const { categories } = useData()
-  const [name,       setName]      = useState(initial?.name        || '')
-  const [color,      setColor]     = useState(initial?.color       || COLORS[0])
-  const [goal,       setGoal]      = useState(initial?.goal_hrs    || 10)
-  const [categoryId, setCategoryId]= useState(initial?.category_id || '')
-  const [busy,       setBusy]      = useState(false)
-  const [err,        setErr]       = useState('')
+  const [name,       setName]       = useState(initial?.name        || '')
+  const [color,      setColor]      = useState(initial?.color       || COLORS[0])
+  const [categoryId, setCategoryId] = useState(initial?.category_id || '')
+  const [busy,       setBusy]       = useState(false)
+  const [err,        setErr]        = useState('')
 
   async function save() {
     if (!name.trim()) return setErr('Name is required.')
@@ -19,7 +18,6 @@ export default function ProjectModal({ onClose, onSave, initial }) {
       await onSave({
         name: name.trim(),
         color,
-        goal_hrs: +goal,
         category_id: categoryId ? +categoryId : null,
       })
     } catch (e) {
@@ -50,7 +48,7 @@ export default function ProjectModal({ onClose, onSave, initial }) {
           </div>
         </div>
 
-        <div className="field" style={{ marginBottom: 14 }}>
+        <div className="field">
           <div className="field-label">Color</div>
           <div className="swatches">
             {COLORS.map(c => (
@@ -58,11 +56,6 @@ export default function ProjectModal({ onClose, onSave, initial }) {
                 style={{ background: c }} onClick={() => setColor(c)} />
             ))}
           </div>
-        </div>
-
-        <div className="field">
-          <div className="field-label">Weekly goal (hours)</div>
-          <input type="number" value={goal} onChange={e => setGoal(e.target.value)} min="0.5" max="80" step="0.5" />
         </div>
 
         {err && <div className="field-error" style={{ marginTop: 10 }}>{err}</div>}

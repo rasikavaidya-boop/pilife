@@ -190,7 +190,7 @@ export default function Goals() {
   return (
     <>
       <div className="toolbar">
-        <p style={{ fontSize: 13, color: 'var(--text3)' }}>Set weekly, monthly, yearly or custom goals per project.</p>
+        <p style={{ fontSize: 13, color: 'var(--text3)' }}>Set daily, weekly, monthly, yearly or custom goals per project.</p>
         <button className="btn btn-primary btn-sm" onClick={() => setAddingProject(true)}>+ New project</button>
       </div>
 
