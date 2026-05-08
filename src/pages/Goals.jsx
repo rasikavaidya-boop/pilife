@@ -4,8 +4,8 @@ import { fmtHours } from '../lib/dates'
 import { computeGoalProgress, goalPeriodLabel, pillProps } from '../lib/goals'
 import ProjectModal from '../components/ProjectModal'
 
-const PERIOD_TYPES = ['weekly', 'monthly', 'yearly', 'custom']
-const PERIOD_LABELS = { weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly', custom: 'Custom range' }
+const PERIOD_TYPES = ['daily', 'weekly', 'monthly', 'yearly', 'custom']
+const PERIOD_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly', custom: 'Custom range' }
 
 function GoalModal({ initial, projects, onSave, onClose }) {
   const [projectId,  setProjectId]  = useState(initial?.project_id  || '')
@@ -242,4 +242,3 @@ export default function Goals() {
     </>
   )
 }
-// Fri May  8 00:00:56 PDT 2026

@@ -1,6 +1,7 @@
 import { weekStart, weekEnd } from './dates'
 
 export function goalPeriodLabel(goal) {
+  if (goal.period_type === 'daily')   return 'Daily'
   if (goal.period_type === 'weekly')  return 'Weekly'
   if (goal.period_type === 'monthly') return 'Monthly'
   if (goal.period_type === 'yearly')  return 'Yearly'
@@ -13,6 +14,9 @@ export function goalDateRange(goal) {
   const now = new Date()
   const today = now.toISOString().slice(0, 10)
 
+  if (goal.period_type === 'daily') {
+    return { start: today, end: today }
+  }
   if (goal.period_type === 'weekly') {
     return { start: weekStart(today), end: weekEnd(today) }
   }
