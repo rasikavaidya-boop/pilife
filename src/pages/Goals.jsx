@@ -231,7 +231,7 @@ export default function Goals() {
 
       {goalModal && (
         <GoalModal
-          initial={goalModal.mode === 'edit' ? goalModal.goal : null}
+          initial={goalModal.mode === 'edit' ? goalModal.goal : { project_id: goalModal.projectId }}
           projects={projects}
           onSave={handleSaveGoal}
           onClose={() => setGoalModal(null)}
